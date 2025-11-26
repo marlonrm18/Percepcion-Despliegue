@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Datos grandes
+data/
+data_split/
+spark_processed_dataset/
+resultados_prediccion/
+
+# MLflow
+mlruns/
+
+# Sistema
+.DS_Store

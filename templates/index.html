@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificador de Calidad de Carne</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+        }
+        #preview {
+            max-width: 300px;
+            margin: 20px auto;
+            display: none;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            display: none;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍖 Clasificador de Calidad de Carne</h1>
+        <p>Sube una imagen de carne para clasificarla como FRESCA o DAÑADA</p>
+        
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <p>📁 Haz clic aquí para subir una imagen</p>
+            <p><small>Formatos: JPG, JPEG, PNG</small></p>
+        </div>
+        
+        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewImage()">
+        
+        <img id="preview" alt="Vista previa">
+        
+        <div style="text-align: center;">
+            <button onclick="predict()" id="predictBtn" disabled>🔍 Analizar Imagen</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let currentImage = null;
+        
+        function previewImage() {
+            const fileInput = document.getElementById('fileInput');
+            const preview = document.getElementById('preview');
+            const predictBtn = document.getElementById('predictBtn');
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    predictBtn.disabled = false;
+                    currentImage = fileInput.files[0];
+                }
+                
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+        
+        function predict() {
+            if (!currentImage) return;
+            
+            const predictBtn = document.getElementById('predictBtn');
+            const resultDiv = document.getElementById('result');
+            
+            predictBtn.disabled = true;
+            predictBtn.textContent = '🔄 Analizando...';
+            resultDiv.style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('file', currentImage);
+            
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultDiv.innerHTML = `❌ Error: ${data.error}`;
+                    resultDiv.style.backgroundColor = '#f8d7da';
+                    resultDiv.style.color = '#721c24';
+                } else {
+                    resultDiv.innerHTML = `
+                        <div style="margin-bottom: 15px;">
+                            <img src="${data.image}" style="max-width: 200px; border-radius: 5px;">
+                        </div>
+                        <div>Carne: <span style="color: ${data.color}">${data.result}</span></div>
+                        <div>Confianza: ${data.confidence}%</div>
+                    `;
+                    resultDiv.style.backgroundColor = data.color === 'green' ? '#d4edda' : '#f8d7da';
+                    resultDiv.style.color = data.color === 'green' ? '#155724' : '#721c24';
+                }
+                resultDiv.style.display = 'block';
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `❌ Error: ${error}`;
+                resultDiv.style.backgroundColor = '#f8d7da';
+                resultDiv.style.color = '#721c24';
+                resultDiv.style.display = 'block';
+            })
+            .finally(() => {
+                predictBtn.disabled = false;
+                predictBtn.textContent = '🔍 Analizar Imagen';
+            });
+        }
+    </script>
+</body>
+</html>
