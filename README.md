@@ -1,8 +1,8 @@
 # Meat Classifier Deployment
 Sistema completo de clasificación de calidad de carne usando Spark, CNN y Flask.
 
-## 🚀 Despliegue Rápido
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+## 🚀 Pagina Web Desplegada
+https://clasificacion-de-carne.onrender.com/
 
 ## 📁 Estructura
 - `app.py` - API Flask
